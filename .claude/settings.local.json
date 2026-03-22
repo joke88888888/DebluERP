@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(mysql:*)",
+      "Bash(where mysql:*)",
+      "Bash(where mysqld:*)",
+      "Read(//c/Program Files/MySQL/**)",
+      "Read(//c/xampp/mysql/**)",
+      "Read(//c/wamp64/bin/**)",
+      "Read(//c/laragon/bin/**)",
+      "Bash(MYSQL=\"/c/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe\")",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 -e \"SHOW DATABASES;\")",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp -e \"SHOW TABLES;\")",
+      "Bash(node -e \":*)",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp -e \"DELETE FROM users; INSERT INTO users \\(username, password_hash, role\\) VALUES \\(''admin'', ''$2a$10$REnsaWKelE6mG7.yjkkHdePhDfJuTLeqsAkPAxCoUXT.OGYyamaNq'', ''admin''\\);\")",
+      "Bash(curl:*)",
+      "Bash(python -m json.tool)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NDE2OTY3MCwiZXhwIjoxNzc0Nzc0NDcwfQ.Xm-pnwU0HiSoWz4PQhVUQhfzycxwJKrgKfEcvlFn7qM\" curl -s http://localhost:3001/api/genders -H \"Authorization: Bearer $TOKEN\" 2)",
+      "Bash(1 echo:*)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwidXNlcm5hbWUiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc3NDE2OTY3MCwiZXhwIjoxNzc0Nzc0NDcwfQ.Xm-pnwU0HiSoWz4PQhVUQhfzycxwJKrgKfEcvlFn7qM\" curl -s \"http://localhost:3001/api/brands?is_active=true\" -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(netstat -ano)",
+      "Bash(cmd /c \"taskkill /PID 39288 /F\" 2>&1)",
+      "Bash(cmd /c \"taskkill /IM node.exe /F\" 2>&1)",
+      "Bash(cmd /c \"tasklist /FI \\\\\"PID eq 39288\\\\\"\" 2>&1)",
+      "Bash(cmd /c \"wmic process where \\\\\"ProcessId=39288\\\\\" get Name,CommandLine\" 2>&1)",
+      "Bash(node:*)",
+      "Bash(cmd //c \"taskkill /PID 39288 /F && echo killed\" 2>&1)",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp -e \"SELECT id, name_th, name_en FROM provinces LIMIT 5;\")",
+      "Bash(python -c \":*)",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp --default-character-set=utf8mb4 -e \"SELECT HEX\\(name_th\\), name_th FROM provinces WHERE id=1;\")",
+      "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp -e \"TRUNCATE TABLE region_provinces; TRUNCATE TABLE provinces;\")",
+      "Bash(npm start:*)",
+      "Bash(where mysqldump:*)",
+      "Read(//c//**)"
+    ]
+  }
+}
