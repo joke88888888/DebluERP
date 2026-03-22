@@ -53,10 +53,6 @@ export default function Layout({ children }) {
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2, bgcolor: 'primary.main', color: 'white' }}>
-        <Typography variant="h6" fontWeight="bold">Deblu ERP</Typography>
-        <Typography variant="caption">ระบบ ERP โรงงานรองเท้า</Typography>
-      </Box>
       <List sx={{ flex: 1, py: 1 }}>
         {menuItems.map((item) => (
           <React.Fragment key={item.label}>
@@ -130,7 +126,7 @@ export default function Layout({ children }) {
         {drawer}
       </Drawer>
       <Drawer variant="permanent"
-        sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box' } }}>
+        sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', top: 64 } }}>
         {drawer}
       </Drawer>
 
