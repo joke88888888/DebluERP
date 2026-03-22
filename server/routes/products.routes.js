@@ -3,6 +3,7 @@ const c = require('../controllers/products.controller');
 const { uploadMultiple } = require('../middleware/upload');
 
 router.get('/check-sku/:sku', c.checkSku);
+router.post('/bulk', c.createBulk);
 router.get('/', c.getAll);
 router.get('/:id', c.getById);
 router.post('/', uploadMultiple('products'), c.create);

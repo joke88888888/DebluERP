@@ -42,7 +42,9 @@ export const commissionRulesApi = crud('/commission-rules');
 export const productsApi = {
   ...crud('/products'),
   create: (data) => api.post('/products', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  createBulk: (data) => api.post('/products/bulk', data),
   uploadImages: (id, data) => api.post(`/products/${id}/images`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteImage: (id, imgId) => api.delete(`/products/${id}/images/${imgId}`),
   checkSku: (sku) => api.get(`/products/check-sku/${sku}`),
+  getAllSkus: () => api.get('/products', { params: { limit: 9999 } }),
 };

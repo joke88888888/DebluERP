@@ -162,6 +162,40 @@ exports.create = async (req, res) => {
   }
 };
 
+exports.createBulk = async (req, res) => {
+  try {
+    const { brand_id, model_id, version_id, product_category_id, production_method_id, cost_price = 0, selling_price = 0, variants } = req.body;
+    if (!brand_id || !model_id || !version_id || !product_category_id || !production_method_id)
+      return error(res, 'Header fields are required', 400);
+    if (!variants || variants.length === 0)
+      return error(res, 'At least one variant is required', 400);
+
+    const results = [];
+    for (const v of variants) {
+      const { color_id, size_id, gender_id, product_name } = v;
+      try {
+        const m = await getMasterCodes(brand_id, production_method_id, gender_id, model_id, version_id, product_category_id, color_id, size_id);
+        const sku = generateSKU({ brandCode: m.brand.code, productionMethodCode: m.pm.code, genderCode: m.gender.code, modelCode: m.model.code, versionCode: m.version.code, categoryCode: m.cat.code, colorCode: m.color.code, sizeCode: m.size.code });
+        const name = product_name || `${m.brandName} ${m.model.name} ${m.color.name} Size ${m.size.size_value}`;
+        const [existing] = await db.query('SELECT id FROM products WHERE sku = ?', [sku]);
+        if (existing.length > 0) { results.push({ sku, status: 'duplicate' }); continue; }
+        const [r] = await db.query(
+          `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, product_name, cost_price, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, name, cost_price, selling_price]
+        );
+        results.push({ sku, status: 'created', id: r.insertId });
+      } catch (e) {
+        results.push({ sku: '-', status: 'error', message: e.message });
+      }
+    }
+    const created = results.filter(r => r.status === 'created').length;
+    const duplicates = results.filter(r => r.status === 'duplicate').length;
+    return success(res, { results, created, duplicates }, `สร้างสำเร็จ ${created} รายการ, ซ้ำ ${duplicates} รายการ`, 201);
+  } catch (err) {
+    return error(res, err.message);
+  }
+};
+
 exports.update = async (req, res) => {
   try {
     const {
