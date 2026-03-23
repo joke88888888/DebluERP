@@ -1,0 +1,1 @@
+ALTER TABLE colors ADD COLUMN name_en VARCHAR(100) NULL AFTER name;
