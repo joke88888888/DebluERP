@@ -30,11 +30,11 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { code, name, hex_code, is_active = true } = req.body;
+    const { code, name, name_en, hex_code, is_active = true } = req.body;
     if (!code || !name) return error(res, 'code, name are required', 400);
     const [result] = await db.query(
-      'INSERT INTO colors (code, name, hex_code, is_active) VALUES (?, ?, ?, ?)',
-      [code, name, hex_code || null, is_active]
+      'INSERT INTO colors (code, name, name_en, hex_code, is_active) VALUES (?, ?, ?, ?, ?)',
+      [code, name, name_en || null, hex_code || null, is_active]
     );
     const [rows] = await db.query('SELECT * FROM colors WHERE id = ?', [result.insertId]);
     return success(res, rows[0], 'Created successfully', 201);
@@ -46,10 +46,10 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { code, name, hex_code, is_active } = req.body;
+    const { code, name, name_en, hex_code, is_active } = req.body;
     const [result] = await db.query(
-      'UPDATE colors SET code=?, name=?, hex_code=?, is_active=? WHERE id=?',
-      [code, name, hex_code || null, is_active, req.params.id]
+      'UPDATE colors SET code=?, name=?, name_en=?, hex_code=?, is_active=? WHERE id=?',
+      [code, name, name_en || null, hex_code || null, is_active, req.params.id]
     );
     if (result.affectedRows === 0) return error(res, 'Not found', 404);
     const [rows] = await db.query('SELECT * FROM colors WHERE id = ?', [req.params.id]);

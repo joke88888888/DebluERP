@@ -17,6 +17,7 @@ export default function ColorsPage() {
       fields={[
         { name: 'code', label: 'รหัส (3 ตัวอักษร)', required: true },
         { name: 'name', label: 'ชื่อสี', required: true },
+        { name: 'name_en', label: 'ชื่อสี (English)', required: false },
         { name: 'hex_code', label: 'HEX Code (#RRGGBB)', required: false },
       ]}
       extraColumns={[hexCol]}
