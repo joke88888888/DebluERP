@@ -1,55 +1,183 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Drawer, AppBar, Toolbar, Typography, IconButton, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Collapse, Avatar, Menu, MenuItem, Divider } from '@mui/material';
 import { Menu as MenuIcon, Dashboard, People, Inventory, Label, ViewList,
   Numbers, Category, Settings as SettingsIcon, Palette, Straighten, WcOutlined,
-  Map, Store, LocalOffer, MonetizationOn, ChevronRight, ExpandMore, Logout, Person } from '@mui/icons-material';
+  Map, Store, LocalOffer, MonetizationOn, ChevronRight, ExpandMore, Logout, Person, Storage, Groups } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-const DRAWER_WIDTH = 260;
+const DRAWER_WIDTH = 280;
 
-const menuItems = [
-  { label: 'Dashboard', icon: <Dashboard />, path: '/' },
-  { label: 'พนักงาน', icon: <People />, path: '/employees' },
+/** Master Data: กลุ่มย่อย (มี children) หรือลิงก์ตรง (มี path) */
+const masterDataChildren = [
   {
-    label: 'สินค้า', icon: <Inventory />, children: [
+    label: 'HR',
+    icon: <Groups />,
+    children: [
+      { label: 'พนักงาน', icon: <People />, path: '/employees' },
+    ],
+  },
+  {
+    label: 'สินค้า',
+    icon: <Inventory />,
+    children: [
       { label: 'แบรนด์', icon: <Label />, path: '/brands' },
       { label: 'รุ่น', icon: <ViewList />, path: '/models' },
-      { label: 'เวอร์ชัน', icon: <Numbers />, path: '/versions' },
+      { label: 'เวอร์ชั่น', icon: <Numbers />, path: '/versions' },
       { label: 'ประเภทสินค้า', icon: <Category />, path: '/categories' },
       { label: 'วิธีการผลิต', icon: <SettingsIcon />, path: '/production-methods' },
       { label: 'สี', icon: <Palette />, path: '/colors' },
       { label: 'ขนาด', icon: <Straighten />, path: '/sizes' },
       { label: 'เพศ', icon: <WcOutlined />, path: '/genders' },
       { label: 'รายการสินค้า', icon: <Inventory />, path: '/products' },
-    ]
+    ],
   },
-  { label: 'ภูมิภาค', icon: <Map />, path: '/regions' },
-  { label: 'ร้านค้า/ลูกค้า', icon: <Store />, path: '/customers' },
+  {
+    label: 'ร้านค้า',
+    icon: <Store />,
+    children: [
+      { label: 'ภูมิภาค', icon: <Map />, path: '/regions' },
+      { label: 'ร้านค้า/ลูกค้า', icon: <Store />, path: '/customers' },
+    ],
+  },
   { label: 'โค้ดส่วนลด', icon: <LocalOffer />, path: '/discount-codes' },
   { label: 'เงื่อนไข Commission', icon: <MonetizationOn />, path: '/commission-rules' },
 ];
 
+const menuItems = [
+  { label: 'Dashboard', icon: <Dashboard />, path: '/' },
+  { label: 'Master Data', icon: <Storage />, children: masterDataChildren },
+];
+
+function collectLeafPaths(nodes) {
+  const paths = [];
+  for (const n of nodes) {
+    if (n.path) paths.push(n.path);
+    if (n.children) paths.push(...collectLeafPaths(n.children));
+  }
+  return paths;
+}
+
+function findSubgroupForPath(nodes, pathname) {
+  for (const n of nodes) {
+    if (n.children) {
+      for (const leaf of n.children) {
+        if (leaf.path === pathname) return n.label;
+      }
+    }
+  }
+  return null;
+}
+
+const masterLeafPaths = collectLeafPaths(masterDataChildren);
+
 export default function Layout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [productsOpen, setProductsOpen] = useState(false);
+  const [masterDataOpen, setMasterDataOpen] = useState(false);
+  const [openSubgroups, setOpenSubgroups] = useState(() => ({
+    HR: false,
+    สินค้า: false,
+    ร้านค้า: false,
+  }));
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
 
+  const isActive = (path) => location.pathname === path;
+  const isMasterDataChildActive = masterLeafPaths.some((p) => location.pathname === p);
+
+  const activeSubgroup = useMemo(
+    () => findSubgroupForPath(masterDataChildren, location.pathname),
+    [location.pathname]
+  );
+
+  useEffect(() => {
+    if (isMasterDataChildActive) setMasterDataOpen(true);
+  }, [location.pathname, isMasterDataChildActive]);
+
+  useEffect(() => {
+    if (activeSubgroup) {
+      setOpenSubgroups((prev) => ({ ...prev, [activeSubgroup]: true }));
+    }
+  }, [activeSubgroup]);
+
+  const toggleSubgroup = (label) => {
+    setOpenSubgroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
+
   const handleNavClick = (item) => {
     if (item.children) {
-      setProductsOpen((o) => !o);
+      setMasterDataOpen((o) => !o);
     } else {
       navigate(item.path);
       setMobileOpen(false);
     }
   };
 
-  const isActive = (path) => location.pathname === path;
-  const isProductActive = menuItems.find(m => m.children)?.children?.some(c => location.pathname.startsWith(c.path));
+  const renderMasterChild = (child) => {
+    if (child.path) {
+      return (
+        <ListItem key={child.path} disablePadding>
+          <ListItemButton
+            selected={isActive(child.path)}
+            onClick={() => {
+              navigate(child.path);
+              setMobileOpen(false);
+            }}
+            sx={{ pl: 3, borderRadius: 1, mx: 1, mb: 0.25 }}
+          >
+            <ListItemIcon sx={{ minWidth: 32, color: isActive(child.path) ? 'primary.main' : 'inherit' }}>
+              {child.icon}
+            </ListItemIcon>
+            <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14 }} />
+          </ListItemButton>
+        </ListItem>
+      );
+    }
+
+    const subgroupActive = child.children.some((leaf) => isActive(leaf.path));
+
+    return (
+      <React.Fragment key={child.label}>
+        <ListItem disablePadding>
+          <ListItemButton
+            selected={subgroupActive}
+            onClick={() => toggleSubgroup(child.label)}
+            sx={{ pl: 3, borderRadius: 1, mx: 1, mb: 0.25 }}
+          >
+            <ListItemIcon sx={{ minWidth: 32, color: subgroupActive ? 'primary.main' : 'inherit' }}>
+              {child.icon}
+            </ListItemIcon>
+            <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} />
+            {openSubgroups[child.label] ? <ExpandMore fontSize="small" /> : <ChevronRight fontSize="small" />}
+          </ListItemButton>
+        </ListItem>
+        <Collapse in={openSubgroups[child.label]} timeout="auto" unmountOnExit>
+          <List component="div" disablePadding>
+            {child.children.map((leaf) => (
+              <ListItem key={leaf.path} disablePadding>
+                <ListItemButton
+                  selected={isActive(leaf.path)}
+                  onClick={() => {
+                    navigate(leaf.path);
+                    setMobileOpen(false);
+                  }}
+                  sx={{ pl: 5, borderRadius: 1, mx: 1, mb: 0.25 }}
+                >
+                  <ListItemIcon sx={{ minWidth: 28, color: isActive(leaf.path) ? 'primary.main' : 'inherit' }}>
+                    {leaf.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={leaf.label} primaryTypographyProps={{ fontSize: 13 }} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Collapse>
+      </React.Fragment>
+    );
+  };
 
   const drawer = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -58,34 +186,26 @@ export default function Layout({ children }) {
           <React.Fragment key={item.label}>
             <ListItem disablePadding>
               <ListItemButton
-                selected={item.path ? isActive(item.path) : isProductActive}
+                selected={item.path ? isActive(item.path) : isMasterDataChildActive}
                 onClick={() => handleNavClick(item)}
                 sx={{ borderRadius: 1, mx: 1, mb: 0.5 }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: (item.path ? isActive(item.path) : isProductActive) ? 'primary.main' : 'inherit' }}>
+                <ListItemIcon
+                  sx={{
+                    minWidth: 36,
+                    color: (item.path ? isActive(item.path) : isMasterDataChildActive) ? 'primary.main' : 'inherit',
+                  }}
+                >
                   {item.icon}
                 </ListItemIcon>
                 <ListItemText primary={item.label} />
-                {item.children && (productsOpen ? <ExpandMore /> : <ChevronRight />)}
+                {item.children && (masterDataOpen ? <ExpandMore /> : <ChevronRight />)}
               </ListItemButton>
             </ListItem>
             {item.children && (
-              <Collapse in={productsOpen} timeout="auto" unmountOnExit>
+              <Collapse in={masterDataOpen} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  {item.children.map((child) => (
-                    <ListItem key={child.path} disablePadding>
-                      <ListItemButton
-                        selected={isActive(child.path)}
-                        onClick={() => { navigate(child.path); setMobileOpen(false); }}
-                        sx={{ pl: 4, borderRadius: 1, mx: 1, mb: 0.25 }}
-                      >
-                        <ListItemIcon sx={{ minWidth: 32, color: isActive(child.path) ? 'primary.main' : 'inherit' }}>
-                          {child.icon}
-                        </ListItemIcon>
-                        <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14 }} />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
+                  {item.children.map((child) => renderMasterChild(child))}
                 </List>
               </Collapse>
             )}
