@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Drawer, AppBar, Toolbar, Typography, IconButton, List, ListItem,
-  ListItemButton, ListItemIcon, ListItemText, Collapse, Avatar, Menu, MenuItem, Divider } from '@mui/material';
+  ListItemButton, ListItemIcon, ListItemText, Collapse, Avatar, Menu, MenuItem, Divider, alpha } from '@mui/material';
 import { Menu as MenuIcon, Dashboard, People, Inventory, Label, ViewList,
   Numbers, Category, Settings as SettingsIcon, Palette, Straighten, WcOutlined,
-  Map, Store, LocalOffer, MonetizationOn, ChevronRight, ExpandMore, Logout, Person, Storage, Groups } from '@mui/icons-material';
+  Map, Store, LocalOffer, MonetizationOn, ChevronRight, ExpandMore, Logout, Person, Storage, Groups,
+  Layers, ViewInAr, PrecisionManufacturing } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const DRAWER_WIDTH = 280;
 
-/** Master Data: กลุ่มย่อย (มี children) หรือลิงก์ตรง (มี path) */
 const masterDataChildren = [
   {
     label: 'HR',
@@ -31,6 +31,14 @@ const masterDataChildren = [
       { label: 'ขนาด', icon: <Straighten />, path: '/sizes' },
       { label: 'เพศ', icon: <WcOutlined />, path: '/genders' },
       { label: 'รายการสินค้า', icon: <Inventory />, path: '/products' },
+    ],
+  },
+  {
+    label: 'ผลิต',
+    icon: <PrecisionManufacturing />,
+    children: [
+      { label: 'ฝาโมล์', icon: <Layers />, path: '/lid-molds' },
+      { label: 'พื้นโมล์', icon: <ViewInAr />, path: '/floor-molds' },
     ],
   },
   {
@@ -78,6 +86,7 @@ export default function Layout({ children }) {
   const [openSubgroups, setOpenSubgroups] = useState(() => ({
     HR: false,
     สินค้า: false,
+    ผลิต: false,
     ร้านค้า: false,
   }));
   const [anchorEl, setAnchorEl] = useState(null);
@@ -118,20 +127,22 @@ export default function Layout({ children }) {
 
   const renderMasterChild = (child) => {
     if (child.path) {
+      const active = isActive(child.path);
       return (
         <ListItem key={child.path} disablePadding>
           <ListItemButton
-            selected={isActive(child.path)}
-            onClick={() => {
-              navigate(child.path);
-              setMobileOpen(false);
+            selected={active}
+            onClick={() => { navigate(child.path); setMobileOpen(false); }}
+            sx={{
+              pl: 3, borderRadius: 1.5, mx: 1, mb: 0.25,
+              '&.Mui-selected': { bgcolor: alpha('#1976d2', 0.12), color: 'primary.main' },
+              '&.Mui-selected:hover': { bgcolor: alpha('#1976d2', 0.18) },
             }}
-            sx={{ pl: 3, borderRadius: 1, mx: 1, mb: 0.25 }}
           >
-            <ListItemIcon sx={{ minWidth: 32, color: isActive(child.path) ? 'primary.main' : 'inherit' }}>
-              {child.icon}
+            <ListItemIcon sx={{ minWidth: 32, color: active ? 'primary.main' : 'text.secondary' }}>
+              {React.cloneElement(child.icon, { fontSize: 'small' })}
             </ListItemIcon>
-            <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14 }} />
+            <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 600 : 400 }} />
           </ListItemButton>
         </ListItem>
       );
@@ -145,34 +156,44 @@ export default function Layout({ children }) {
           <ListItemButton
             selected={subgroupActive}
             onClick={() => toggleSubgroup(child.label)}
-            sx={{ pl: 3, borderRadius: 1, mx: 1, mb: 0.25 }}
+            sx={{
+              pl: 3, borderRadius: 1.5, mx: 1, mb: 0.25,
+              '&.Mui-selected': { bgcolor: alpha('#1976d2', 0.08) },
+            }}
           >
-            <ListItemIcon sx={{ minWidth: 32, color: subgroupActive ? 'primary.main' : 'inherit' }}>
-              {child.icon}
+            <ListItemIcon sx={{ minWidth: 32, color: subgroupActive ? 'primary.main' : 'text.secondary' }}>
+              {React.cloneElement(child.icon, { fontSize: 'small' })}
             </ListItemIcon>
             <ListItemText primary={child.label} primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }} />
-            {openSubgroups[child.label] ? <ExpandMore fontSize="small" /> : <ChevronRight fontSize="small" />}
+            {openSubgroups[child.label] ? <ExpandMore fontSize="small" sx={{ color: 'text.secondary' }} /> : <ChevronRight fontSize="small" sx={{ color: 'text.secondary' }} />}
           </ListItemButton>
         </ListItem>
         <Collapse in={openSubgroups[child.label]} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {child.children.map((leaf) => (
-              <ListItem key={leaf.path} disablePadding>
-                <ListItemButton
-                  selected={isActive(leaf.path)}
-                  onClick={() => {
-                    navigate(leaf.path);
-                    setMobileOpen(false);
-                  }}
-                  sx={{ pl: 5, borderRadius: 1, mx: 1, mb: 0.25 }}
-                >
-                  <ListItemIcon sx={{ minWidth: 28, color: isActive(leaf.path) ? 'primary.main' : 'inherit' }}>
-                    {leaf.icon}
-                  </ListItemIcon>
-                  <ListItemText primary={leaf.label} primaryTypographyProps={{ fontSize: 13 }} />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {child.children.map((leaf) => {
+              const leafActive = isActive(leaf.path);
+              return (
+                <ListItem key={leaf.path} disablePadding>
+                  <ListItemButton
+                    selected={leafActive}
+                    onClick={() => { navigate(leaf.path); setMobileOpen(false); }}
+                    sx={{
+                      pl: 5.5, borderRadius: 1.5, mx: 1, mb: 0.25,
+                      '&.Mui-selected': {
+                        bgcolor: alpha('#1976d2', 0.12), color: 'primary.main',
+                        borderLeft: '3px solid', borderColor: 'primary.main', pl: 5,
+                      },
+                      '&.Mui-selected:hover': { bgcolor: alpha('#1976d2', 0.18) },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 28, color: leafActive ? 'primary.main' : 'text.secondary' }}>
+                      {React.cloneElement(leaf.icon, { fontSize: 'small' })}
+                    </ListItemIcon>
+                    <ListItemText primary={leaf.label} primaryTypographyProps={{ fontSize: 13, fontWeight: leafActive ? 600 : 400 }} />
+                  </ListItemButton>
+                </ListItem>
+              );
+            })}
           </List>
         </Collapse>
       </React.Fragment>
@@ -180,62 +201,77 @@ export default function Layout({ children }) {
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <List sx={{ flex: 1, py: 1 }}>
-        {menuItems.map((item) => (
-          <React.Fragment key={item.label}>
-            <ListItem disablePadding>
-              <ListItemButton
-                selected={item.path ? isActive(item.path) : isMasterDataChildActive}
-                onClick={() => handleNavClick(item)}
-                sx={{ borderRadius: 1, mx: 1, mb: 0.5 }}
-              >
-                <ListItemIcon
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
+      {/* Sidebar brand header */}
+      <Box sx={{ px: 2.5, py: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ letterSpacing: 1, fontSize: 11 }}>
+          DEBLU ERP
+        </Typography>
+      </Box>
+      <List sx={{ flex: 1, py: 1, overflowY: 'auto' }}>
+        {menuItems.map((item) => {
+          const active = item.path ? isActive(item.path) : isMasterDataChildActive;
+          return (
+            <React.Fragment key={item.label}>
+              <ListItem disablePadding>
+                <ListItemButton
+                  selected={active}
+                  onClick={() => handleNavClick(item)}
                   sx={{
-                    minWidth: 36,
-                    color: (item.path ? isActive(item.path) : isMasterDataChildActive) ? 'primary.main' : 'inherit',
+                    borderRadius: 1.5, mx: 1, mb: 0.5,
+                    '&.Mui-selected': { bgcolor: alpha('#1976d2', 0.1), color: 'primary.main' },
+                    '&.Mui-selected:hover': { bgcolor: alpha('#1976d2', 0.16) },
                   }}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-                {item.children && (masterDataOpen ? <ExpandMore /> : <ChevronRight />)}
-              </ListItemButton>
-            </ListItem>
-            {item.children && (
-              <Collapse in={masterDataOpen} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  {item.children.map((child) => renderMasterChild(child))}
-                </List>
-              </Collapse>
-            )}
-          </React.Fragment>
-        ))}
+                  <ListItemIcon sx={{ minWidth: 36, color: active ? 'primary.main' : 'text.secondary' }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: active ? 700 : 500 }} />
+                  {item.children && (masterDataOpen ? <ExpandMore sx={{ color: 'text.secondary' }} /> : <ChevronRight sx={{ color: 'text.secondary' }} />)}
+                </ListItemButton>
+              </ListItem>
+              {item.children && (
+                <Collapse in={masterDataOpen} timeout="auto" unmountOnExit>
+                  <List component="div" disablePadding>
+                    {item.children.map((child) => renderMasterChild(child))}
+                  </List>
+                </Collapse>
+              )}
+            </React.Fragment>
+          );
+        })}
       </List>
     </Box>
   );
 
   return (
     <Box sx={{ display: 'flex' }}>
-      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
+      <AppBar position="fixed" elevation={0} sx={{
+        zIndex: (t) => t.zIndex.drawer + 1,
+        background: 'linear-gradient(135deg, #1565c0 0%, #1976d2 100%)',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+      }}>
         <Toolbar>
           <IconButton color="inherit" edge="start" onClick={() => setMobileOpen(true)} sx={{ mr: 2, display: { md: 'none' } }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flex: 1 }}>Deblu ERP</Typography>
+          <Typography variant="h6" sx={{ flex: 1, fontWeight: 700, letterSpacing: 0.5 }}>Deblu ERP</Typography>
           <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} color="inherit">
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.dark' }}>
+            <Avatar sx={{ width: 34, height: 34, bgcolor: 'rgba(255,255,255,0.2)', fontSize: 14, fontWeight: 700 }}>
               {user?.first_name?.[0] || user?.username?.[0] || 'A'}
             </Avatar>
           </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}>
-            <MenuItem disabled>
-              <Person sx={{ mr: 1 }} />
-              {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
-            </MenuItem>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={() => setAnchorEl(null)}
+            PaperProps={{ elevation: 3, sx: { mt: 1, minWidth: 200, borderRadius: 2 } }}>
+            <Box sx={{ px: 2, py: 1.5 }}>
+              <Typography variant="subtitle2" fontWeight={700}>
+                {user?.first_name ? `${user.first_name} ${user.last_name}` : user?.username}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">{user?.role || 'User'}</Typography>
+            </Box>
             <Divider />
-            <MenuItem onClick={() => { logout(); navigate('/login'); }}>
-              <Logout sx={{ mr: 1 }} /> ออกจากระบบ
+            <MenuItem onClick={() => { logout(); navigate('/login'); }} sx={{ mt: 0.5, color: 'error.main' }}>
+              <Logout sx={{ mr: 1, fontSize: 18 }} /> ออกจากระบบ
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -246,11 +282,17 @@ export default function Layout({ children }) {
         {drawer}
       </Drawer>
       <Drawer variant="permanent"
-        sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', top: 64 } }}>
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': { width: DRAWER_WIDTH, boxSizing: 'border-box', top: 64, borderRight: '1px solid', borderColor: 'divider' }
+        }}>
         {drawer}
       </Drawer>
 
-      <Box component="main" sx={{ flex: 1, p: 3, ml: { md: `${DRAWER_WIDTH}px` }, mt: 8, bgcolor: 'background.default', minHeight: '100vh' }}>
+      <Box component="main" sx={{
+        flex: 1, p: 3, ml: { md: `${DRAWER_WIDTH}px` }, mt: 8,
+        bgcolor: '#f8f9fb', minHeight: '100vh'
+      }}>
         {children}
       </Box>
     </Box>

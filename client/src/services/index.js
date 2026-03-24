@@ -19,11 +19,7 @@ export const brandsApi = {
   create: (data) => api.post('/brands', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id, data) => api.put(`/brands/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
-export const modelsApi = {
-  ...crud('/models'),
-  create: (data) => api.post('/models', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  update: (id, data) => api.put(`/models/${id}`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
-};
+export const modelsApi = crud('/models');
 export const provincesApi = { getAll: (params) => api.get('/provinces', { params }) };
 export const regionsApi = crud('/regions');
 export const employeesApi = {
@@ -39,6 +35,8 @@ export const employeesApi = {
 export const customersApi = crud('/customers');
 export const discountCodesApi = crud('/discount-codes');
 export const commissionRulesApi = crud('/commission-rules');
+export const lidMoldsApi = crud('/lid-molds');
+export const floorMoldsApi = crud('/floor-molds');
 export const productsApi = {
   ...crud('/products'),
   create: (data) => api.post('/products', data, { headers: { 'Content-Type': 'multipart/form-data' } }),

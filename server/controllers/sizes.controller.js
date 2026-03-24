@@ -10,7 +10,7 @@ exports.getAll = async (req, res) => {
       sql += ' WHERE is_active = ?';
       params.push(is_active === 'true' || is_active === '1' ? 1 : 0);
     }
-    sql += ' ORDER BY code';
+    sql += ' ORDER BY CAST(size_value AS DECIMAL) ASC, size_value ASC';
     const [rows] = await db.query(sql, params);
     return success(res, rows);
   } catch (err) {

@@ -1,13 +1,14 @@
 const db = require('../config/db');
 const { success, error } = require('../utils/responseHelper');
-const path = require('path');
-const fs = require('fs');
 
 exports.getAll = async (req, res) => {
   try {
     const { brand_id, is_active, q, page = 1, limit = 50 } = req.query;
-    let sql = `SELECT m.*, b.name as brand_name, b.code as brand_code FROM models m
-               LEFT JOIN brands b ON m.brand_id = b.id WHERE 1=1`;
+    let sql = `SELECT m.*, b.name as brand_name, b.code as brand_code,
+               f.name as floor_mold_name FROM models m
+               LEFT JOIN brands b ON m.brand_id = b.id
+               LEFT JOIN floor_molds f ON m.floor_mold_id = f.id
+               WHERE 1=1`;
     const params = [];
     if (brand_id) { sql += ' AND m.brand_id = ?'; params.push(brand_id); }
     if (q) { sql += ' AND m.name LIKE ?'; params.push(`%${q}%`); }
@@ -25,8 +26,11 @@ exports.getAll = async (req, res) => {
 exports.getById = async (req, res) => {
   try {
     const [rows] = await db.query(
-      `SELECT m.*, b.name as brand_name, b.code as brand_code FROM models m
-       LEFT JOIN brands b ON m.brand_id = b.id WHERE m.id = ?`,
+      `SELECT m.*, b.name as brand_name, b.code as brand_code,
+       f.name as floor_mold_name FROM models m
+       LEFT JOIN brands b ON m.brand_id = b.id
+       LEFT JOIN floor_molds f ON m.floor_mold_id = f.id
+       WHERE m.id = ?`,
       [req.params.id]
     );
     if (rows.length === 0) return error(res, 'Not found', 404);
@@ -38,15 +42,16 @@ exports.getById = async (req, res) => {
 
 exports.create = async (req, res) => {
   try {
-    const { code, name, brand_id, description, is_active = true } = req.body;
+    const { code, name, brand_id, floor_mold_id = null, description, is_active = true } = req.body;
     if (!code || !name || !brand_id) return error(res, 'code, name, brand_id are required', 400);
-    const model_image = req.file ? `models/${req.file.filename}` : null;
     const [result] = await db.query(
-      'INSERT INTO models (code, name, brand_id, model_image, description, is_active) VALUES (?, ?, ?, ?, ?, ?)',
-      [code, name, brand_id, model_image, description || null, is_active]
+      'INSERT INTO models (code, name, brand_id, floor_mold_id, description, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+      [code, name, brand_id, floor_mold_id || null, description || null, is_active]
     );
     const [rows] = await db.query(
-      'SELECT m.*, b.name as brand_name FROM models m LEFT JOIN brands b ON m.brand_id = b.id WHERE m.id = ?',
+      `SELECT m.*, b.name as brand_name, f.name as floor_mold_name FROM models m
+       LEFT JOIN brands b ON m.brand_id = b.id
+       LEFT JOIN floor_molds f ON m.floor_mold_id = f.id WHERE m.id = ?`,
       [result.insertId]
     );
     return success(res, rows[0], 'Created successfully', 201);
@@ -58,25 +63,18 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const { code, name, brand_id, description, is_active } = req.body;
+    const { code, name, brand_id, floor_mold_id = null, description, is_active } = req.body;
     const [existing] = await db.query('SELECT * FROM models WHERE id = ?', [req.params.id]);
     if (existing.length === 0) return error(res, 'Not found', 404);
 
-    let model_image = existing[0].model_image;
-    if (req.file) {
-      if (model_image) {
-        const oldPath = path.join(__dirname, '..', 'uploads', model_image);
-        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-      }
-      model_image = `models/${req.file.filename}`;
-    }
-
     await db.query(
-      'UPDATE models SET code=?, name=?, brand_id=?, model_image=?, description=?, is_active=? WHERE id=?',
-      [code, name, brand_id, model_image, description || null, is_active, req.params.id]
+      'UPDATE models SET code=?, name=?, brand_id=?, floor_mold_id=?, description=?, is_active=? WHERE id=?',
+      [code, name, brand_id, floor_mold_id || null, description || null, is_active, req.params.id]
     );
     const [rows] = await db.query(
-      'SELECT m.*, b.name as brand_name FROM models m LEFT JOIN brands b ON m.brand_id = b.id WHERE m.id = ?',
+      `SELECT m.*, b.name as brand_name, f.name as floor_mold_name FROM models m
+       LEFT JOIN brands b ON m.brand_id = b.id
+       LEFT JOIN floor_molds f ON m.floor_mold_id = f.id WHERE m.id = ?`,
       [req.params.id]
     );
     return success(res, rows[0], 'Updated successfully');

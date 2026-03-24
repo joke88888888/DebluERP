@@ -133,7 +133,8 @@ exports.create = async (req, res) => {
       colorCode: masters.color.code,
       sizeCode: masters.size.code,
     });
-    const product_name = `${masters.brandName} ${masters.model.name} ${masters.color.name} Size ${masters.size.size_value}`;
+    const skuPrefix = sku.slice(0, 8);
+    const product_name = `${skuPrefix} ${masters.color.name} ${masters.size.size_value}`;
 
     const [result] = await db.query(
       `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id,
@@ -172,18 +173,21 @@ exports.createBulk = async (req, res) => {
 
     const results = [];
     for (const v of variants) {
-      const { color_id, size_id, gender_id, product_name } = v;
+      const { color_id, size_id, gender_id, product_name, cost_price: vCost, selling_price: vSell } = v;
+      const finalCost = vCost !== undefined ? vCost : cost_price;
+      const finalSell = vSell !== undefined ? vSell : selling_price;
       try {
         const m = await getMasterCodes(brand_id, production_method_id, gender_id, model_id, version_id, product_category_id, color_id, size_id);
         const sku = generateSKU({ brandCode: m.brand.code, productionMethodCode: m.pm.code, genderCode: m.gender.code, modelCode: m.model.code, versionCode: m.version.code, categoryCode: m.cat.code, colorCode: m.color.code, sizeCode: m.size.code });
-        const name = product_name || `${m.brandName} ${m.model.name} ${m.color.name} Size ${m.size.size_value}`;
+        const skuPrefix = sku.slice(0, 8);
+        const name = product_name || `${skuPrefix} ${m.color.name} ${m.size.size_value}`;
         const [existing] = await db.query('SELECT id FROM products WHERE sku = ?', [sku]);
-        if (existing.length > 0) { results.push({ sku, status: 'duplicate' }); continue; }
+        if (existing.length > 0) { results.push({ sku, status: 'duplicate', color_id, gender_id }); continue; }
         const [r] = await db.query(
           `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, product_name, cost_price, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, name, cost_price, selling_price]
+          [sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, name, finalCost, finalSell]
         );
-        results.push({ sku, status: 'created', id: r.insertId });
+        results.push({ sku, status: 'created', id: r.insertId, color_id, gender_id });
       } catch (e) {
         results.push({ sku: '-', status: 'error', message: e.message });
       }
@@ -216,7 +220,8 @@ exports.update = async (req, res) => {
       colorCode: masters.color.code,
       sizeCode: masters.size.code,
     });
-    const product_name = `${masters.brandName} ${masters.model.name} ${masters.color.name} Size ${masters.size.size_value}`;
+    const skuPfx = sku.slice(0, 8);
+    const product_name = `${skuPfx} ${masters.color.name} ${masters.size.size_value}`;
 
     await db.query(
       `UPDATE products SET sku=?, brand_id=?, model_id=?, version_id=?, product_category_id=?,

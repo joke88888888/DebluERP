@@ -27,6 +27,8 @@ app.use('/api/customers', require('./routes/customers.routes'));
 app.use('/api/discount-codes', require('./routes/discountCodes.routes'));
 app.use('/api/commission-rules', require('./routes/commissionRules.routes'));
 app.use('/api/products', require('./routes/products.routes'));
+app.use('/api/lid-molds', require('./routes/lidMolds.routes'));
+app.use('/api/floor-molds', require('./routes/floorMolds.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'Deblu ERP Server running' }));
