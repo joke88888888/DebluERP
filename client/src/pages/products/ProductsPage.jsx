@@ -4,7 +4,7 @@ import {
   DialogActions, Switch, FormControlLabel, IconButton, Chip, Tooltip,
   InputAdornment, CircularProgress, MenuItem, Grid, Table, TableHead,
   TableRow, TableCell, TableBody, Alert, Card, CardContent,
-  Divider, Stack
+  Divider, Stack, Autocomplete
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import {
@@ -336,18 +336,24 @@ export default function ProductsPage() {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         <Typography variant="caption" color="text.secondary" fontWeight={600}>กลุ่มที่ {gIdx + 1}</Typography>
                       </Box>
-                      <TextField select label="สี *" value={g.color_id}
-                        onChange={e => updateGroup(gIdx, 'color_id', e.target.value)}
-                        size="small" sx={{ minWidth: 160 }}>
-                        {masters.colors.map(c => (
-                          <MenuItem key={c.id} value={c.id}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              {c.hex_code && <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: c.hex_code, border: '1px solid rgba(0,0,0,0.2)', flexShrink: 0 }} />}
-                              {c.name}
-                            </Box>
-                          </MenuItem>
-                        ))}
-                      </TextField>
+                      <Autocomplete
+                        options={masters.colors}
+                        getOptionLabel={c => c.name || ''}
+                        value={masters.colors.find(c => c.id == g.color_id) || null}
+                        onChange={(_, val) => updateGroup(gIdx, 'color_id', val ? val.id : '')}
+                        size="small"
+                        sx={{ minWidth: 200 }}
+                        renderOption={(props, c) => (
+                          <Box component="li" {...props} key={c.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            {c.hex_code && <Box sx={{ width: 14, height: 14, borderRadius: '50%', bgcolor: c.hex_code, border: '1px solid rgba(0,0,0,0.2)', flexShrink: 0 }} />}
+                            {c.name}
+                          </Box>
+                        )}
+                        renderInput={(params) => (
+                          <TextField {...params} label="สี *" placeholder="พิมพ์เพื่อค้นหา..." />
+                        )}
+                        noOptionsText="ไม่พบสีที่ค้นหา"
+                      />
                       <TextField select label="เพศ *" value={g.gender_id}
                         onChange={e => updateGroup(gIdx, 'gender_id', e.target.value)}
                         size="small" sx={{ minWidth: 130 }}>
