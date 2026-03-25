@@ -4,6 +4,8 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 
+const toInt = (val) => (val === true || val === 'true' || val === 1 || val === '1') ? 1 : 0;
+
 const generateEmployeeCode = async () => {
   const [rows] = await db.query('SELECT employee_code FROM employees ORDER BY id DESC LIMIT 1');
   if (rows.length === 0) return 'EMP-0001';
@@ -109,7 +111,7 @@ exports.create = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [employee_code, prefix || null, first_name, last_name, id_card_number || null, phone || null,
        email || null, address || null, position_id || null, employment_type_id || null,
-       base_salary, has_ot, ot_rate_multiplier, hire_date || null, status, profile_image]
+       base_salary, toInt(has_ot), ot_rate_multiplier, hire_date || null, status, profile_image]
     );
 
     const employeeId = result.insertId;
@@ -153,7 +155,7 @@ exports.update = async (req, res) => {
        address=?, position_id=?, employment_type_id=?, base_salary=?, has_ot=?, ot_rate_multiplier=?,
        hire_date=?, status=?, profile_image=? WHERE id=?`,
       [prefix || null, first_name, last_name, id_card_number || null, phone || null, email || null,
-       address || null, position_id || null, employment_type_id || null, base_salary, has_ot,
+       address || null, position_id || null, employment_type_id || null, base_salary, toInt(has_ot),
        ot_rate_multiplier, hire_date || null, status, profile_image, req.params.id]
     );
     const [rows] = await db.query('SELECT * FROM employees WHERE id = ?', [req.params.id]);
