@@ -17,9 +17,15 @@ import useSnackbar from '../../hooks/useSnackbar';
 import { productsApi, brandsApi, modelsApi, versionsApi, categoriesApi, productionMethodsApi, gendersApi, colorsApi, sizesApi } from '../../services';
 
 const emptyHeader = { brand_id: '', model_id: '', version_id: '', product_category_id: '', production_method_id: '' };
-const emptyEditForm = { brand_id: '', model_id: '', version_id: '', product_category_id: '', production_method_id: '', gender_id: '', color_id: '', size_id: '', cost_price: 0, selling_price: 0, is_active: true };
+const emptyEditForm = { brand_id: '', model_id: '', version_id: '', product_category_id: '', production_method_id: '', gender_id: '', color_id: '', size_id: '', cost_price: 0, selling_price: 0, wholesale_price: 0, is_active: true };
 const newGroup = () => ({ _id: Math.random(), color_id: '', gender_id: '', imageFile: null, imagePreview: '' });
-const newSizeEntry = () => ({ _id: Math.random(), size_id: '', cost_price: 0, selling_price: 0 });
+const newSizeEntry = (prev = null) => ({
+  _id: Math.random(),
+  size_id: '',
+  cost_price: prev ? prev.cost_price : 0,
+  selling_price: prev ? prev.selling_price : 0,
+  wholesale_price: prev ? prev.wholesale_price : 0,
+});
 
 const computeName = (header, colorId, genderId, sizeId, masters) => {
   const sku = computeSKU(header, colorId, genderId, sizeId, masters);
@@ -118,7 +124,7 @@ export default function ProductsPage() {
   const addGroup = () => setGroups(p => [...p, { ...newGroup(), sizes: [newSizeEntry()] }]);
   const removeGroup = (gIdx) => setGroups(p => p.filter((_, i) => i !== gIdx));
   const updateGroup = (gIdx, key, val) => setGroups(p => { const n = [...p]; n[gIdx] = { ...n[gIdx], [key]: val }; return n; });
-  const addSizeToGroup = (gIdx) => setGroups(p => { const n = [...p]; n[gIdx] = { ...n[gIdx], sizes: [...n[gIdx].sizes, newSizeEntry()] }; return n; });
+  const addSizeToGroup = (gIdx) => setGroups(p => { const n = [...p]; const lastSize = n[gIdx].sizes[n[gIdx].sizes.length - 1] || null; n[gIdx] = { ...n[gIdx], sizes: [...n[gIdx].sizes, newSizeEntry(lastSize)] }; return n; });
   const removeSizeFromGroup = (gIdx, sIdx) => setGroups(p => { const n = [...p]; n[gIdx] = { ...n[gIdx], sizes: n[gIdx].sizes.filter((_, i) => i !== sIdx) }; return n; });
   const updateSizeInGroup = (gIdx, sIdx, key, value) => setGroups(p => { const n = [...p]; const sg = [...n[gIdx].sizes]; sg[sIdx] = { ...sg[sIdx], [key]: value }; n[gIdx] = { ...n[gIdx], sizes: sg }; return n; });
 
@@ -153,7 +159,7 @@ export default function ProductsPage() {
       if (!g.color_id || !g.gender_id) continue;
       for (const s of g.sizes) {
         if (!s.size_id) continue;
-        allVariants.push({ color_id: g.color_id, gender_id: g.gender_id, size_id: s.size_id, cost_price: s.cost_price || 0, selling_price: s.selling_price || 0 });
+        allVariants.push({ color_id: g.color_id, gender_id: g.gender_id, size_id: s.size_id, cost_price: s.cost_price || 0, selling_price: s.selling_price || 0, wholesale_price: s.wholesale_price || 0 });
       }
     }
     if (allVariants.length === 0) return showSnack('กรุณากรอกข้อมูลอย่างน้อย 1 รายการ', 'error');
@@ -220,7 +226,9 @@ export default function ProductsPage() {
     { field: 'color_name', headerName: 'สี', width: 100 },
     { field: 'size_value', headerName: 'ไซส์', width: 80 },
     { field: 'gender_name', headerName: 'เพศ', width: 80 },
-    { field: 'selling_price', headerName: 'ราคาขาย', width: 100, valueFormatter: (p) => p.value?.toLocaleString() },
+    { field: 'cost_price', headerName: 'ต้นทุน', width: 90, valueFormatter: (p) => p.value?.toLocaleString() },
+    { field: 'selling_price', headerName: 'ราคาขาย', width: 90, valueFormatter: (p) => p.value?.toLocaleString() },
+    { field: 'wholesale_price', headerName: 'ราคาขายส่ง', width: 100, valueFormatter: (p) => p.value?.toLocaleString() },
     {
       field: 'is_active', headerName: 'สถานะ', width: 100,
       renderCell: (p) => <Chip label={p.value ? 'ใช้งาน' : 'ปิด'} color={p.value ? 'success' : 'default'} size="small" />
@@ -398,6 +406,7 @@ export default function ProductsPage() {
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ขนาด *</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาต้นทุน</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาขาย</TableCell>
+                            <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาขายส่ง</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 200 }}>ชื่อสินค้า (auto)</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 160 }}>SKU Preview</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', width: 72 }}>สถานะ</TableCell>
@@ -421,6 +430,9 @@ export default function ProductsPage() {
                                 </TableCell>
                                 <TableCell>
                                   <TextField type="number" value={s.selling_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'selling_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
+                                </TableCell>
+                                <TableCell>
+                                  <TextField type="number" value={s.wholesale_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'wholesale_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant="caption" color={autoName ? 'text.primary' : 'text.disabled'} sx={{ fontStyle: autoName ? 'normal' : 'italic' }}>
@@ -521,8 +533,9 @@ export default function ProductsPage() {
                 {masters.sizes.map(s => <MenuItem key={s.id} value={s.id}>{s.size_value}</MenuItem>)}
               </TextField>
             </Grid>
-            <Grid item xs={12} sm={6}><TextField label="ราคาต้นทุน (บาท)" type="number" value={editForm.cost_price} onChange={setEF('cost_price')} fullWidth /></Grid>
-            <Grid item xs={12} sm={6}><TextField label="ราคาขาย (บาท)" type="number" value={editForm.selling_price} onChange={setEF('selling_price')} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="ราคาต้นทุน (บาท)" type="number" value={editForm.cost_price} onChange={setEF('cost_price')} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="ราคาขาย (บาท)" type="number" value={editForm.selling_price} onChange={setEF('selling_price')} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="ราคาขายส่ง (บาท)" type="number" value={editForm.wholesale_price} onChange={setEF('wholesale_price')} fullWidth /></Grid>
             <Grid item xs={12}><FormControlLabel control={<Switch checked={editForm.is_active} onChange={e => setEditForm(p => ({ ...p, is_active: e.target.checked }))} />} label="ใช้งาน" /></Grid>
           </Grid>
         </DialogContent>

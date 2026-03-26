@@ -116,7 +116,7 @@ exports.create = async (req, res) => {
   try {
     const {
       brand_id, model_id, version_id, product_category_id, production_method_id,
-      gender_id, color_id, size_id, cost_price = 0, selling_price = 0, is_active = true
+      gender_id, color_id, size_id, cost_price = 0, selling_price = 0, wholesale_price = 0, is_active = true
     } = req.body;
     if (!brand_id || !model_id || !version_id || !product_category_id || !production_method_id || !gender_id || !color_id || !size_id) {
       return error(res, 'All master data fields are required', 400);
@@ -138,10 +138,10 @@ exports.create = async (req, res) => {
 
     const [result] = await db.query(
       `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id,
-       gender_id, color_id, size_id, product_name, cost_price, selling_price, is_active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       gender_id, color_id, size_id, product_name, cost_price, selling_price, wholesale_price, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [sku, brand_id, model_id, version_id, product_category_id, production_method_id,
-       gender_id, color_id, size_id, product_name, cost_price, selling_price, is_active]
+       gender_id, color_id, size_id, product_name, cost_price, selling_price, wholesale_price, is_active]
     );
     const productId = result.insertId;
 
@@ -173,9 +173,10 @@ exports.createBulk = async (req, res) => {
 
     const results = [];
     for (const v of variants) {
-      const { color_id, size_id, gender_id, product_name, cost_price: vCost, selling_price: vSell } = v;
+      const { color_id, size_id, gender_id, product_name, cost_price: vCost, selling_price: vSell, wholesale_price: vWhole } = v;
       const finalCost = vCost !== undefined ? vCost : cost_price;
       const finalSell = vSell !== undefined ? vSell : selling_price;
+      const finalWhole = vWhole !== undefined ? vWhole : 0;
       try {
         const m = await getMasterCodes(brand_id, production_method_id, gender_id, model_id, version_id, product_category_id, color_id, size_id);
         const sku = generateSKU({ brandCode: m.brand.code, productionMethodCode: m.pm.code, genderCode: m.gender.code, modelCode: m.model.code, versionCode: m.version.code, categoryCode: m.cat.code, colorCode: m.color.code, sizeCode: m.size.code });
@@ -184,8 +185,8 @@ exports.createBulk = async (req, res) => {
         const [existing] = await db.query('SELECT id FROM products WHERE sku = ?', [sku]);
         if (existing.length > 0) { results.push({ sku, status: 'duplicate', color_id, gender_id }); continue; }
         const [r] = await db.query(
-          `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, product_name, cost_price, selling_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, name, finalCost, finalSell]
+          `INSERT INTO products (sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, product_name, cost_price, selling_price, wholesale_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [sku, brand_id, model_id, version_id, product_category_id, production_method_id, gender_id, color_id, size_id, name, finalCost, finalSell, finalWhole]
         );
         results.push({ sku, status: 'created', id: r.insertId, color_id, gender_id });
       } catch (e) {
@@ -204,7 +205,7 @@ exports.update = async (req, res) => {
   try {
     const {
       brand_id, model_id, version_id, product_category_id, production_method_id,
-      gender_id, color_id, size_id, cost_price, selling_price, is_active
+      gender_id, color_id, size_id, cost_price, selling_price, wholesale_price = 0, is_active
     } = req.body;
     const [existing] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
     if (existing.length === 0) return error(res, 'Not found', 404);
@@ -226,9 +227,9 @@ exports.update = async (req, res) => {
     await db.query(
       `UPDATE products SET sku=?, brand_id=?, model_id=?, version_id=?, product_category_id=?,
        production_method_id=?, gender_id=?, color_id=?, size_id=?, product_name=?,
-       cost_price=?, selling_price=?, is_active=? WHERE id=?`,
+       cost_price=?, selling_price=?, wholesale_price=?, is_active=? WHERE id=?`,
       [sku, brand_id, model_id, version_id, product_category_id, production_method_id,
-       gender_id, color_id, size_id, product_name, cost_price, selling_price, is_active, req.params.id]
+       gender_id, color_id, size_id, product_name, cost_price, selling_price, wholesale_price, is_active, req.params.id]
     );
     const [rows] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
     return success(res, rows[0], 'Updated successfully');
