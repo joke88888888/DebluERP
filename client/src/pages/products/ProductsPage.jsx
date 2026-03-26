@@ -227,8 +227,8 @@ export default function ProductsPage() {
     { field: 'size_value', headerName: 'ไซส์', width: 80 },
     { field: 'gender_name', headerName: 'เพศ', width: 80 },
     { field: 'cost_price', headerName: 'ต้นทุน', width: 90, valueFormatter: (p) => p.value?.toLocaleString() },
-    { field: 'selling_price', headerName: 'ราคาขาย', width: 90, valueFormatter: (p) => p.value?.toLocaleString() },
     { field: 'wholesale_price', headerName: 'ราคาขายส่ง', width: 100, valueFormatter: (p) => p.value?.toLocaleString() },
+    { field: 'selling_price', headerName: 'ราคาขาย', width: 90, valueFormatter: (p) => p.value?.toLocaleString() },
     {
       field: 'is_active', headerName: 'สถานะ', width: 100,
       renderCell: (p) => <Chip label={p.value ? 'ใช้งาน' : 'ปิด'} color={p.value ? 'success' : 'default'} size="small" />
@@ -405,8 +405,8 @@ export default function ProductsPage() {
                           <TableRow sx={{ bgcolor: 'grey.50' }}>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ขนาด *</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาต้นทุน</TableCell>
-                            <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาขาย</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาขายส่ง</TableCell>
+                            <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 110 }}>ราคาขาย</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 200 }}>ชื่อสินค้า (auto)</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', minWidth: 160 }}>SKU Preview</TableCell>
                             <TableCell sx={{ fontSize: 12, color: 'text.secondary', width: 72 }}>สถานะ</TableCell>
@@ -429,10 +429,10 @@ export default function ProductsPage() {
                                   <TextField type="number" value={s.cost_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'cost_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
                                 </TableCell>
                                 <TableCell>
-                                  <TextField type="number" value={s.selling_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'selling_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
+                                  <TextField type="number" value={s.wholesale_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'wholesale_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
                                 </TableCell>
                                 <TableCell>
-                                  <TextField type="number" value={s.wholesale_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'wholesale_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
+                                  <TextField type="number" value={s.selling_price} onChange={e => updateSizeInGroup(gIdx, sIdx, 'selling_price', e.target.value)} size="small" fullWidth inputProps={{ min: 0 }} />
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant="caption" color={autoName ? 'text.primary' : 'text.disabled'} sx={{ fontStyle: autoName ? 'normal' : 'italic' }}>
@@ -534,8 +534,8 @@ export default function ProductsPage() {
               </TextField>
             </Grid>
             <Grid item xs={12} sm={4}><TextField label="ราคาต้นทุน (บาท)" type="number" value={editForm.cost_price} onChange={setEF('cost_price')} fullWidth /></Grid>
-            <Grid item xs={12} sm={4}><TextField label="ราคาขาย (บาท)" type="number" value={editForm.selling_price} onChange={setEF('selling_price')} fullWidth /></Grid>
             <Grid item xs={12} sm={4}><TextField label="ราคาขายส่ง (บาท)" type="number" value={editForm.wholesale_price} onChange={setEF('wholesale_price')} fullWidth /></Grid>
+            <Grid item xs={12} sm={4}><TextField label="ราคาขาย (บาท)" type="number" value={editForm.selling_price} onChange={setEF('selling_price')} fullWidth /></Grid>
             <Grid item xs={12}><FormControlLabel control={<Switch checked={editForm.is_active} onChange={e => setEditForm(p => ({ ...p, is_active: e.target.checked }))} />} label="ใช้งาน" /></Grid>
           </Grid>
         </DialogContent>
