@@ -29,6 +29,9 @@ app.use('/api/commission-rules', require('./routes/commissionRules.routes'));
 app.use('/api/products', require('./routes/products.routes'));
 app.use('/api/lid-molds', require('./routes/lidMolds.routes'));
 app.use('/api/floor-molds', require('./routes/floorMolds.routes'));
+app.use('/api/transport', require('./routes/transport.routes'));
+app.use('/api/sub-customers', require('./routes/subCustomers.routes'));
+app.use('/api/customer-report', require('./routes/customerReport.routes'));
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ success: true, message: 'Deblu ERP Server running' }));

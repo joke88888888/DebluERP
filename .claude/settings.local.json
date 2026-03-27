@@ -32,7 +32,11 @@
       "Bash(\"$MYSQL\" -u DebluERP -pdeblu12345678 deblu_erp -e \"TRUNCATE TABLE region_provinces; TRUNCATE TABLE provinces;\")",
       "Bash(npm start:*)",
       "Bash(where mysqldump:*)",
-      "Read(//c//**)"
+      "Read(//c//**)",
+      "Bash(npx react-scripts:*)",
+      "Bash(npm run:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

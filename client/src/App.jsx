@@ -22,6 +22,10 @@ import DiscountCodesPage from './pages/discount-codes/DiscountCodesPage';
 import CommissionRulesPage from './pages/commission-rules/CommissionRulesPage';
 import LidMoldsPage from './pages/lid-molds/LidMoldsPage';
 import FloorMoldsPage from './pages/floor-molds/FloorMoldsPage';
+import TransportPage from './pages/transport/TransportPage';
+import SubCustomersPage from './pages/sub-customers/SubCustomersPage';
+import CustomerReportPage from './pages/customer-report/CustomerReportPage';
+import CustomerReportDetailPage from './pages/customer-report/CustomerReportDetailPage';
 
 const theme = createTheme({
   palette: {
@@ -89,6 +93,10 @@ export default function App() {
             <Route path="/commission-rules" element={<PrivateRoute><CommissionRulesPage /></PrivateRoute>} />
             <Route path="/lid-molds" element={<PrivateRoute><LidMoldsPage /></PrivateRoute>} />
             <Route path="/floor-molds" element={<PrivateRoute><FloorMoldsPage /></PrivateRoute>} />
+            <Route path="/transport" element={<PrivateRoute><TransportPage /></PrivateRoute>} />
+            <Route path="/sub-customers" element={<PrivateRoute><SubCustomersPage /></PrivateRoute>} />
+            <Route path="/customer-report" element={<PrivateRoute><CustomerReportPage /></PrivateRoute>} />
+            <Route path="/customer-report/:id" element={<PrivateRoute><CustomerReportDetailPage /></PrivateRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

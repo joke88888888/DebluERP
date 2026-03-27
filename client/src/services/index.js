@@ -32,7 +32,18 @@ export const employeesApi = {
   deleteDocument: (id, docId) => api.delete(`/employees/${id}/documents/${docId}`),
   uploadProfileImage: (id, data) => api.post(`/employees/${id}/profile-image`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
-export const customersApi = crud('/customers');
+export const customersApi = {
+  ...crud('/customers'),
+  uploadDocument: (id, data) => api.post(`/customers/${id}/documents`, data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  deleteDocument: (id, docId) => api.delete(`/customers/${id}/documents/${docId}`),
+};
+export const subCustomersApi = crud('/sub-customers');
+export const transportApi = crud('/transport');
+export const customerReportApi = {
+  getSummary: () => api.get('/customer-report/summary'),
+  getCustomerList: (params) => api.get('/customer-report/customers', { params }),
+  getCustomerDetail: (id) => api.get(`/customer-report/customers/${id}`),
+};
 export const discountCodesApi = crud('/discount-codes');
 export const commissionRulesApi = crud('/commission-rules');
 export const lidMoldsApi = crud('/lid-molds');

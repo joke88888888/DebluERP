@@ -4,7 +4,7 @@ import { Box, Drawer, AppBar, Toolbar, Typography, IconButton, List, ListItem,
 import { Menu as MenuIcon, Dashboard, People, Inventory, Label, ViewList,
   Numbers, Category, Settings as SettingsIcon, Palette, Straighten, WcOutlined,
   Map, Store, LocalOffer, MonetizationOn, ChevronRight, ExpandMore, Logout, Person, Storage, Groups,
-  Layers, ViewInAr, PrecisionManufacturing } from '@mui/icons-material';
+  Layers, ViewInAr, PrecisionManufacturing, LocalShipping, Assessment, PeopleAlt } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,11 +42,20 @@ const masterDataChildren = [
     ],
   },
   {
-    label: 'ร้านค้า',
-    icon: <Store />,
+    label: 'ลูกค้า',
+    icon: <PeopleAlt />,
     children: [
       { label: 'ภูมิภาค', icon: <Map />, path: '/regions' },
-      { label: 'ร้านค้า/ลูกค้า', icon: <Store />, path: '/customers' },
+      { label: 'ลูกค้าหลัก', icon: <Store />, path: '/customers' },
+      { label: 'ลูกค้าย่อย', icon: <People />, path: '/sub-customers' },
+      { label: 'รายงานสรุปลูกค้า', icon: <Assessment />, path: '/customer-report' },
+    ],
+  },
+  {
+    label: 'ขนส่ง',
+    icon: <LocalShipping />,
+    children: [
+      { label: 'Master ขนส่ง', icon: <LocalShipping />, path: '/transport' },
     ],
   },
   { label: 'โค้ดส่วนลด', icon: <LocalOffer />, path: '/discount-codes' },
@@ -87,7 +96,8 @@ export default function Layout({ children }) {
     HR: false,
     สินค้า: false,
     ผลิต: false,
-    ร้านค้า: false,
+    ลูกค้า: false,
+    ขนส่ง: false,
   }));
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
